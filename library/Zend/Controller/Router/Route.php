@@ -238,7 +238,11 @@ class Zend_Controller_Router_Route extends Zend_Controller_Router_Route_Abstract
                         $var = urldecode($path[$i]);
                         if (!isset($this->_wildcardData[$var]) && !isset($this->_defaults[$var]) && !isset($values[$var])) {
                             $this->_wildcardData[$var] = (isset($path[$i+1])) ? urldecode($path[$i+1]) : null;
-                        }
+                        } else {
+                  			$scalar = $this->_wildcardData[$var];
+                  			if(!is_array($this->_wildcardData[$var])) $this->_wildcardData[$var] = array($this->_wildcardData[$var]);
+                  			$this->_wildcardData[$var][] = (isset($path[$i+1])) ? urldecode($path[$i+1]) : null;
+                  		}
                     }
 
                     $matchedPath = implode($this->_urlDelimiter, $path);
@@ -400,9 +404,21 @@ class Zend_Controller_Router_Route extends Zend_Controller_Router_Route_Abstract
             }
 
             if ($flag || $value !== $defaultValue || $partial) {
-                if ($encode) $value = urlencode($value);
-                $return = $this->_urlDelimiter . $value . $return;
-                $flag = true;
+            	if (is_array($value)) {
+            		for($i = count($value) - 1; $i >= 0; $i--) {
+						if ($encode) $value[$i] = urlencode($value[$i]);
+						if (0 == $i) {
+            				$return = $this->_urlDelimiter . $value[$i] . $return;
+	            		} else {
+	            			$return = $this->_urlDelimiter . $url[$key - 1] . $this->_urlDelimiter . $value[$i] . $return;
+	            		}
+	            		$flag = true;
+	            	}
+	            } else {
+					if ($encode) $value = urlencode($value);
+					$return = $this->_urlDelimiter . $value . $return;
+            		$flag = true;
+	            }
             }
         }
 
